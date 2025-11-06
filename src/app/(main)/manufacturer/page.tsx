@@ -7,6 +7,7 @@ import { IotMonitor } from '@/components/dashboard/iot-monitor';
 import { AlertFeed } from '@/components/dashboard/alert-feed';
 import { drugInfo, supplyChainData, iotData, alerts } from '@/lib/data';
 import { ApprovalSubmission } from '@/components/dashboard/approval-submission';
+import { SubmissionStatus } from '@/components/dashboard/submission-status';
 
 export default function ManufacturerPage() {
   return (
@@ -15,6 +16,7 @@ export default function ManufacturerPage() {
         <div className="space-y-6 lg:col-span-2">
           <ManufacturerDashboard />
           <ApprovalSubmission />
+          <SubmissionStatus />
           <DrugOverviewCard drugInfo={drugInfo} />
           <TraceabilityTimeline events={supplyChainData} />
         </div>
