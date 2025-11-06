@@ -15,11 +15,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import type { FdaApprovalItem } from '@/lib/types';
 import { FileCheck2 } from 'lucide-react';
+import { TraceabilityTimeline } from './traceability-timeline';
+import { supplyChainData } from '@/lib/data';
 
 export function ApprovedDrugs() {
   const firestore = useFirestore();
@@ -39,7 +48,7 @@ export function ApprovedDrugs() {
           FDA Approved Drugs
         </CardTitle>
         <CardDescription>
-          A list of all drugs and shipments approved by the FDA.
+          A list of all drugs and shipments approved by the FDA. Click a drug name for its timeline.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -60,7 +69,23 @@ export function ApprovedDrugs() {
             <TableBody>
               {approvedDrugs.map((item) => (
                 <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.drugName}</TableCell>
+                  <TableCell className="font-medium">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <span className="cursor-pointer font-semibold text-primary hover:underline">
+                          {item.drugName}
+                        </span>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-3xl">
+                        <DialogHeader>
+                          <DialogTitle>Traceability Timeline: {item.drugName}</DialogTitle>
+                        </DialogHeader>
+                        <div className="max-h-[70vh] overflow-y-auto p-4">
+                          <TraceabilityTimeline events={supplyChainData} />
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </TableCell>
                   <TableCell>{item.manufacturerName}</TableCell>
                   <TableCell>
                     {new Date(item.submissionDate).toLocaleDateString()}
