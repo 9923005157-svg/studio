@@ -6,22 +6,19 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { useRole, type UserRole } from "@/hooks/use-role"
-import { ChevronDown, Hexagon, Users, LogOut, User as UserIcon, Loader2 } from "lucide-react"
+import { useRole } from "@/hooks/use-role"
+import { Hexagon, Users, LogOut, User as UserIcon, Loader2 } from "lucide-react"
 import { useAuth, useUser } from "@/firebase"
-import { getAuth, signOut } from "firebase/auth"
+import { signOut } from "firebase/auth"
 
 export function Header() {
-  const { role, setRole, isRoleLoading } = useRole()
+  const { role, isRoleLoading } = useRole()
   const { user } = useUser()
   const auth = useAuth();
-  const roles: UserRole[] = ["Manufacturer", "Distributor", "Pharmacy", "FDA", "Patient"]
 
   const handleSignOut = () => {
     if (auth) {
@@ -40,31 +37,14 @@ export function Header() {
       </div>
 
       <div className="ml-auto flex items-center gap-4">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" disabled={isRoleLoading}>
-              {isRoleLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Users />
-              )}
-              <span>{isRoleLoading ? "Loading..." : role}</span>
-              <ChevronDown />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuRadioGroup
-              value={role}
-              onValueChange={(value) => setRole(value as UserRole)}
-            >
-              {roles.map((r) => (
-                <DropdownMenuRadioItem key={r} value={r}>
-                  {r}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button variant="outline" disabled={true} className="cursor-default">
+          {isRoleLoading ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Users />
+          )}
+          <span>{isRoleLoading ? "Loading..." : role}</span>
+        </Button>
         {user && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

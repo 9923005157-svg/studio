@@ -6,15 +6,14 @@ import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 
 type RoleContextType = {
-  role: UserRole;
-  setRole: (role: UserRole) => void;
+  role: UserRole | null;
   isRoleLoading: boolean;
 };
 
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
 
 export function RoleProvider({ children }: { children: ReactNode }) {
-  const [role, setRole] = useState<UserRole>("Patient"); // Default role
+  const [role, setRole] = useState<UserRole | null>(null);
   const { user, isUserLoading: isUserAuthLoading } = useUser();
   const firestore = useFirestore();
 
@@ -28,12 +27,15 @@ export function RoleProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (userData && userData.role) {
       setRole(userData.role);
+    } else if (!isUserDocLoading && !userData) {
+      // If doc doesn't exist and we are not loading, there's no role.
+      setRole(null);
     }
-  }, [userData]);
+  }, [userData, isUserDocLoading]);
 
   const isRoleLoading = isUserAuthLoading || isUserDocLoading;
 
-  const value = useMemo(() => ({ role, setRole, isRoleLoading }), [role, isRoleLoading]);
+  const value = useMemo(() => ({ role, isRoleLoading }), [role, isRoleLoading]);
 
   return <RoleContext.Provider value={value}>{children}</RoleContext.Provider>;
 }
