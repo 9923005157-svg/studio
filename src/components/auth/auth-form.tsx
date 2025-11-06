@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -36,6 +36,8 @@ const signUpSchema = z.object({
   path: ['confirmPassword'],
 });
 
+const formSchema = signInSchema.or(signUpSchema);
+
 type Tab = 'signin' | 'signup';
 
 export function AuthForm() {
@@ -46,14 +48,19 @@ export function AuthForm() {
 
   const currentSchema = activeTab === 'signin' ? signInSchema : signUpSchema;
 
-  const form = useForm<z.infer<typeof currentSchema>>({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(currentSchema),
     defaultValues: {
       email: '',
       password: '',
-      ...(activeTab === 'signup' && { confirmPassword: '' }),
+      confirmPassword: '',
     },
   });
+  
+  // Watch for tab changes to re-validate the form
+  useEffect(() => {
+    form.trigger();
+  }, [activeTab, form]);
   
   const handleTabChange = (value: string) => {
     setActiveTab(value as Tab);
@@ -61,7 +68,7 @@ export function AuthForm() {
     setError(null);
   }
 
-  async function onSubmit(values: z.infer<typeof currentSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     setError(null);
 
