@@ -47,7 +47,8 @@ const signUpSchema = z.object({
   path: ['confirmPassword'],
 });
 
-const formSchema = z.union([signInSchema, signUpSchema]);
+type SignInValues = z.infer<typeof signInSchema>;
+type SignUpValues = z.infer<typeof signUpSchema>;
 
 type Tab = 'signin' | 'signup';
 
@@ -60,41 +61,41 @@ export function AuthForm() {
 
   const currentSchema = activeTab === 'signin' ? signInSchema : signUpSchema;
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<SignInValues | SignUpValues>({
     resolver: zodResolver(currentSchema),
     defaultValues: {
       email: '',
       password: '',
-      confirmPassword: '',
-      role: 'Manufacturer',
     },
   });
   
   useEffect(() => {
-    form.trigger();
+    form.reset({
+      email: '',
+      password: '',
+      ...(activeTab === 'signup' && { confirmPassword: '', role: 'Manufacturer' }),
+    });
+    setError(null);
   }, [activeTab, form]);
   
   const handleTabChange = (value: string) => {
     setActiveTab(value as Tab);
-    form.reset();
-    setError(null);
   }
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: SignInValues | SignUpValues) {
     setIsLoading(true);
     setError(null);
 
     if (activeTab === 'signin') {
-      const { email, password } = values as z.infer<typeof signInSchema>;
+      const { email, password } = values as SignInValues;
       initiateEmailSignIn(auth, email, password);
     } else {
-      const { email, password, role } = values as z.infer<typeof signUpSchema>;
+      const { email, password, role } = values as SignUpValues;
       try {
         const userCredential = await initiateEmailSignUp(auth, email, password);
-        // Because signup is now awaited, we can get the user and save their role.
         if (userCredential && userCredential.user) {
           const userDocRef = doc(firestore, 'users', userCredential.user.uid);
-          setDocumentNonBlocking(userDocRef, { role: role }, {});
+          setDocumentNonBlocking(userDocRef, { role: role }, { merge: true });
         }
       } catch (err: any) {
         setError(err.message || 'An unexpected error occurred during sign-up.');
@@ -103,15 +104,12 @@ export function AuthForm() {
     }
   }
 
-  // Effect to handle post-login/signup loading state
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        // User is signed in, stop loading. Redirects are handled elsewhere.
         setIsLoading(false);
       }
-      // if no user, form remains as-is for login/signup
     });
 
     return () => unsubscribe();
@@ -155,7 +153,7 @@ export function AuthForm() {
                 />
             </div>
           </TabsContent>
-          <TabsContent value="signup" forceMount>
+          <TabsContent value="signup">
             <div className="space-y-2">
                 <FormField
                     control={form.control}
@@ -202,7 +200,7 @@ export function AuthForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Role</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} defaultValue={field.value as string}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select a role" />
