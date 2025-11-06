@@ -7,6 +7,7 @@ import { IotMonitor } from '@/components/dashboard/iot-monitor';
 import { AlertFeed } from '@/components/dashboard/alert-feed';
 import { drugInfo, supplyChainData, iotData, alerts } from '@/lib/data';
 import { ApprovalQueue } from '@/components/dashboard/approval-queue';
+import { ApprovedDrugs } from '@/components/dashboard/approved-drugs';
 
 export default function FdaPage() {
   return (
@@ -15,6 +16,7 @@ export default function FdaPage() {
         <div className="space-y-6 lg:col-span-2">
           <FdaDashboard />
           <ApprovalQueue />
+          <ApprovedDrugs />
           <DrugOverviewCard drugInfo={drugInfo} />
           <TraceabilityTimeline events={supplyChainData} />
         </div>
