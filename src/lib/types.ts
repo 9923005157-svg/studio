@@ -34,8 +34,12 @@ export type DrugInfo = {
 export type FdaApprovalItem = {
   id: string;
   drugName: string;
+  drugDetails: string;
+  storageTemperature: string;
   manufacturerId: string;
   manufacturerName: string;
   submissionDate: string;
   status: 'Pending' | 'Approved' | 'Rejected';
 };
+
+    

@@ -26,9 +26,12 @@ import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection } from 'firebase/firestore';
 import { FileUp, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { Textarea } from '../ui/textarea';
 
 const submissionSchema = z.object({
   drugName: z.string().min(1, 'Drug name is required.'),
+  drugDetails: z.string().min(1, 'Drug details are required.'),
+  storageTemperature: z.string().min(1, 'Storage temperature is required.'),
 });
 
 type SubmissionValues = z.infer<typeof submissionSchema>;
@@ -42,6 +45,8 @@ export function ApprovalSubmission() {
     resolver: zodResolver(submissionSchema),
     defaultValues: {
       drugName: '',
+      drugDetails: '',
+      storageTemperature: '',
     },
   });
 
@@ -50,7 +55,7 @@ export function ApprovalSubmission() {
     setIsLoading(true);
 
     const submissionData = {
-      drugName: values.drugName,
+      ...values,
       manufacturerId: user.uid,
       manufacturerName: user.displayName || user.email || 'Unknown Manufacturer',
       submissionDate: new Date().toISOString(),
@@ -95,6 +100,32 @@ export function ApprovalSubmission() {
                 </FormItem>
               )}
             />
+             <FormField
+              control={form.control}
+              name="drugDetails"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Drug Details</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Describe the drug, its purpose, and dosage." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="storageTemperature"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Storage Temperature</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., 2-8°C" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <Button type="submit" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Submit
@@ -105,3 +136,5 @@ export function ApprovalSubmission() {
     </Card>
   );
 }
+
+    

@@ -22,7 +22,13 @@ import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, doc, query, where } from 'firebase/firestore';
 import type { FdaApprovalItem } from '@/lib/types';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { FileClock, Check, X } from 'lucide-react';
+import { FileClock, Check, X, Thermometer } from 'lucide-react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 
 const statusColors = {
   Pending: 'bg-yellow-500',
@@ -66,54 +72,59 @@ export function ApprovalQueue() {
           <p className="text-muted-foreground">No pending submissions.</p>
         )}
         {approvals && approvals.length > 0 && (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Drug Name</TableHead>
-                <TableHead>Manufacturer</TableHead>
-                <TableHead>Submitted</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {approvals.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.drugName}</TableCell>
-                  <TableCell>{item.manufacturerName}</TableCell>
-                  <TableCell>
-                    {new Date(item.submissionDate).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
+          <Accordion type="single" collapsible className="w-full">
+            {approvals.map((item) => (
+              <AccordionItem value={item.id} key={item.id}>
+                <AccordionTrigger className="hover:no-underline">
+                  <div className="flex w-full items-center justify-between pr-4">
+                    <div className="flex-1 text-left font-medium">{item.drugName}</div>
+                    <div className="flex-1 text-left text-sm text-muted-foreground">{item.manufacturerName}</div>
+                    <div className="hidden md:block flex-1 text-left text-sm text-muted-foreground">
+                      {new Date(item.submissionDate).toLocaleDateString()}
+                    </div>
                     <Badge className={statusColors[item.status]}>
                       {item.status}
                     </Badge>
-                  </TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleUpdateStatus(item.id, 'Approved')}
-                      className="text-green-600 border-green-600 hover:bg-green-50"
-                    >
-                      <Check className="mr-1 h-4 w-4" /> Approve
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleUpdateStatus(item.id, 'Rejected')}
-                      className="text-red-600 border-red-600 hover:bg-red-50"
-                    >
-                      <X className="mr-1 h-4 w-4" /> Reject
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4 px-4 py-2">
+                    <div>
+                      <h4 className="font-semibold">Drug Details</h4>
+                      <p className="text-muted-foreground">{item.drugDetails}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Thermometer className="h-5 w-5 text-primary" />
+                        <span className="font-semibold">Storage:</span>
+                        <span>{item.storageTemperature}</span>
+                    </div>
+                    <div className="flex justify-end space-x-2 pt-4">
+                       <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleUpdateStatus(item.id, 'Approved')}
+                        className="text-green-600 border-green-600 hover:bg-green-50"
+                      >
+                        <Check className="mr-1 h-4 w-4" /> Approve
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleUpdateStatus(item.id, 'Rejected')}
+                        className="text-red-600 border-red-600 hover:bg-red-50"
+                      >
+                        <X className="mr-1 h-4 w-4" /> Reject
+                      </Button>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         )}
       </CardContent>
     </Card>
   );
 }
 
+    

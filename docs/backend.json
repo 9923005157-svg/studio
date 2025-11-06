@@ -157,6 +157,14 @@
           "type": "string",
           "description": "The name of the drug being submitted for approval."
         },
+        "drugDetails": {
+          "type": "string",
+          "description": "A brief description of the drug."
+        },
+        "storageTemperature": {
+          "type": "string",
+          "description": "The recommended storage temperature for the drug."
+        },
         "manufacturerId": {
           "type": "string",
           "description": "The UID of the manufacturer submitting the request."
@@ -182,6 +190,8 @@
       },
       "required": [
         "drugName",
+        "drugDetails",
+        "storageTemperature",
         "manufacturerId",
         "manufacturerName",
         "submissionDate",
@@ -297,3 +307,5 @@
     "reasoning": "The Firestore structure is designed to support the PharmaTrust application, focusing on securing the pharmaceutical supply chain. It provides separate collections for each role (Manufacturer, Distributor, Pharmacy, Patient, and FDA) to enable role-based access control. A dedicated 'users' collection is added to store user-specific data like roles, which is crucial for authorization. The 'fda_approvals' collection allows manufacturers to submit items and FDA to approve them. This structure prioritizes Authorization Independence by avoiding hierarchical authorization dependencies, using dedicated collections for each entity and denormalizing manufacturerId within the FDAApproval collection to facilitate direct queries. This eliminates the need for `get()` calls in security rules, enabling atomic operations and improving debuggability. Structural Segregation is achieved by creating distinct collections for each entity, ensuring a homogeneous security posture within each collection. QAPs are supported through this segregation, allowing secure `list` operations based on user roles."
   }
 }
+
+    
