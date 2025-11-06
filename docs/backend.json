@@ -1,5 +1,27 @@
 {
   "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user in the system, storing their role.",
+      "properties": {
+        "role": {
+          "type": "string",
+          "description": "The role of the user within the application.",
+          "enum": [
+            "Manufacturer",
+            "Distributor",
+            "Pharmacy",
+            "FDA",
+            "Patient"
+          ]
+        }
+      },
+      "required": [
+        "role"
+      ]
+    },
     "Manufacturer": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Manufacturer",
@@ -166,6 +188,22 @@
   "firestore": {
     "structure": [
       {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Collection for storing user role information. Uses path-based ownership for user data. Includes userId as a parameter.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "Unique identifier for the user, matching their Firebase Auth UID."
+            }
+          ]
+        }
+      },
+      {
         "path": "/manufacturers/{manufacturerId}",
         "definition": {
           "entityName": "Manufacturer",
@@ -246,6 +284,6 @@
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to support the PharmaTrust application, focusing on securing the pharmaceutical supply chain. It provides separate collections for each role (Manufacturer, Distributor, Pharmacy, Patient, and FDAApproval) to enable role-based access control. This structure prioritizes Authorization Independence by avoiding hierarchical authorization dependencies, using dedicated collections for each role and denormalizing manufacturerId within the FDAApproval collection to facilitate direct queries. This eliminates the need for `get()` calls in security rules, enabling atomic operations and improving debuggability. Structural Segregation is achieved by creating distinct collections for each entity, ensuring a homogeneous security posture within each collection. QAPs are supported through this segregation, allowing secure `list` operations based on user roles."
+    "reasoning": "The Firestore structure is designed to support the PharmaTrust application, focusing on securing the pharmaceutical supply chain. It provides separate collections for each role (Manufacturer, Distributor, Pharmacy, Patient, and FDAApproval) to enable role-based access control. A dedicated 'users' collection is added to store user-specific data like roles, which is crucial for authorization. This structure prioritizes Authorization Independence by avoiding hierarchical authorization dependencies, using dedicated collections for each role and denormalizing manufacturerId within the FDAApproval collection to facilitate direct queries. This eliminates the need for `get()` calls in security rules, enabling atomic operations and improving debuggability. Structural Segregation is achieved by creating distinct collections for each entity, ensuring a homogeneous security posture within each collection. QAPs are supported through this segregation, allowing secure `list` operations based on user roles."
   }
 }

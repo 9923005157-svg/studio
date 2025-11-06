@@ -13,12 +13,12 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { useRole, type UserRole } from "@/hooks/use-role"
-import { ChevronDown, Hexagon, Users, LogOut, User as UserIcon } from "lucide-react"
+import { ChevronDown, Hexagon, Users, LogOut, User as UserIcon, Loader2 } from "lucide-react"
 import { useAuth, useUser } from "@/firebase"
 import { getAuth, signOut } from "firebase/auth"
 
 export function Header() {
-  const { role, setRole } = useRole()
+  const { role, setRole, isRoleLoading } = useRole()
   const { user } = useUser()
   const auth = useAuth();
   const roles: UserRole[] = ["Manufacturer", "Distributor", "Pharmacy", "FDA", "Patient"]
@@ -42,9 +42,13 @@ export function Header() {
       <div className="ml-auto flex items-center gap-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline">
-              <Users />
-              <span>{role}</span>
+            <Button variant="outline" disabled={isRoleLoading}>
+              {isRoleLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Users />
+              )}
+              <span>{isRoleLoading ? "Loading..." : role}</span>
               <ChevronDown />
             </Button>
           </DropdownMenuTrigger>

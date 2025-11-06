@@ -5,6 +5,7 @@
  * This ruleset enforces a strict user-ownership model for Manufacturers, Distributors, Pharmacies, and Patients. Each entity can only be created, read, updated, or deleted by the authenticated user whose ID matches the entity's ID.  FDA Approvals are publicly readable, but only Manufacturers can create, update, or delete their own FDA Approvals.
  *
  * Data Structure:
+ * - /users/{userId}
  * - /manufacturers/{manufacturerId}
  * - /distributors/{distributorId}
  * - /pharmacies/{pharmacyId}
@@ -12,7 +13,7 @@
  * - /fda_approvals/{fdaApprovalId}
  *
  * Key Security Decisions:
- * - Users can only manage their own resources (manufacturers, distributors, pharmacies, patients).
+ * - Users can only manage their own resources (user profile, manufacturers, distributors, pharmacies, patients).
  * - FDAApprovals are publicly readable to allow information sharing, but writes are restricted to the owning manufacturer.
  * - The rules do not enforce the validity of any data fields except for relational integrity and ownership.
  *
@@ -23,6 +24,20 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    /**
+     * @description Controls access to user documents. Users can create their own user document and read it. Updates are disallowed.
+     * @path /users/{userId}
+     */
+    match /users/{userId} {
+      function isOwner(userId) {
+        return request.auth != null && request.auth.uid == userId;
+      }
+      
+      allow create: if isOwner(userId);
+      allow get: if isOwner(userId);
+      allow update, delete: if false; // Role changes handled by backend logic, not direct client updates
+    }
+    
     /**
      * @description Controls access to manufacturer documents. Each manufacturer can only manage their own data.
      * @path /manufacturers/{manufacturerId}
