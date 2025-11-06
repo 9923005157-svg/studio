@@ -1,0 +1,251 @@
+{
+  "entities": {
+    "Manufacturer": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Manufacturer",
+      "type": "object",
+      "description": "Represents a pharmaceutical manufacturer in the PharmaTrust system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the manufacturer entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the manufacturing company."
+        },
+        "address": {
+          "type": "string",
+          "description": "Physical address of the manufacturing facility."
+        },
+        "contactEmail": {
+          "type": "string",
+          "description": "Email address for contacting the manufacturer",
+          "format": "email"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "address",
+        "contactEmail"
+      ]
+    },
+    "Distributor": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Distributor",
+      "type": "object",
+      "description": "Represents a pharmaceutical distributor in the PharmaTrust system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the distributor entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the distribution company."
+        },
+        "address": {
+          "type": "string",
+          "description": "Physical address of the distribution center."
+        },
+        "contactEmail": {
+          "type": "string",
+          "description": "Email address for contacting the distributor",
+          "format": "email"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "address",
+        "contactEmail"
+      ]
+    },
+    "Pharmacy": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Pharmacy",
+      "type": "object",
+      "description": "Represents a pharmacy in the PharmaTrust system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the pharmacy entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the pharmacy."
+        },
+        "address": {
+          "type": "string",
+          "description": "Physical address of the pharmacy."
+        },
+        "contactEmail": {
+          "type": "string",
+          "description": "Email address for contacting the pharmacy",
+          "format": "email"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "address",
+        "contactEmail"
+      ]
+    },
+    "Patient": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Patient",
+      "type": "object",
+      "description": "Represents a patient in the PharmaTrust system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the patient entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name of the patient."
+        },
+        "dateOfBirth": {
+          "type": "string",
+          "description": "Date of birth of the patient.",
+          "format": "date"
+        },
+        "contactEmail": {
+          "type": "string",
+          "description": "Email address for contacting the patient",
+          "format": "email"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "dateOfBirth",
+        "contactEmail"
+      ]
+    },
+    "FDAApproval": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "FDAApproval",
+      "type": "object",
+      "description": "Represents an FDA approval entity.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the FDA Approval entity."
+        },
+        "manufacturerId": {
+          "type": "string",
+          "description": "Reference to Manufacturer. (Relationship: Manufacturer 1:N FDAApproval)"
+        },
+        "approvalDate": {
+          "type": "string",
+          "description": "Date when the FDA approval was granted.",
+          "format": "date-time"
+        },
+        "approvalStatus": {
+          "type": "string",
+          "description": "Status of the FDA approval (e.g., Approved, Pending, Rejected)."
+        }
+      },
+      "required": [
+        "id",
+        "manufacturerId",
+        "approvalDate",
+        "approvalStatus"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/manufacturers/{manufacturerId}",
+        "definition": {
+          "entityName": "Manufacturer",
+          "schema": {
+            "$ref": "#/backend/entities/Manufacturer"
+          },
+          "description": "Collection for storing manufacturer information. Uses path-based ownership for manufacturer data. Includes manufacturerId as a parameter.",
+          "params": [
+            {
+              "name": "manufacturerId",
+              "description": "Unique identifier for the manufacturer."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/distributors/{distributorId}",
+        "definition": {
+          "entityName": "Distributor",
+          "schema": {
+            "$ref": "#/backend/entities/Distributor"
+          },
+          "description": "Collection for storing distributor information. Uses path-based ownership for distributor data. Includes distributorId as a parameter.",
+          "params": [
+            {
+              "name": "distributorId",
+              "description": "Unique identifier for the distributor."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/pharmacies/{pharmacyId}",
+        "definition": {
+          "entityName": "Pharmacy",
+          "schema": {
+            "$ref": "#/backend/entities/Pharmacy"
+          },
+          "description": "Collection for storing pharmacy information. Uses path-based ownership for pharmacy data. Includes pharmacyId as a parameter.",
+          "params": [
+            {
+              "name": "pharmacyId",
+              "description": "Unique identifier for the pharmacy."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/patients/{patientId}",
+        "definition": {
+          "entityName": "Patient",
+          "schema": {
+            "$ref": "#/backend/entities/Patient"
+          },
+          "description": "Collection for storing patient information. Uses path-based ownership for patient data. Includes patientId as a parameter.",
+          "params": [
+            {
+              "name": "patientId",
+              "description": "Unique identifier for the patient."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/fda_approvals/{fdaApprovalId}",
+        "definition": {
+          "entityName": "FDAApproval",
+          "schema": {
+            "$ref": "#/backend/entities/FDAApproval"
+          },
+          "description": "Collection for storing FDA approval information.  Denormalizes manufacturerId for efficient querying and authorization. Includes fdaApprovalId as a parameter.",
+          "params": [
+            {
+              "name": "fdaApprovalId",
+              "description": "Unique identifier for the FDA approval."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to support the PharmaTrust application, focusing on securing the pharmaceutical supply chain. It provides separate collections for each role (Manufacturer, Distributor, Pharmacy, Patient, and FDAApproval) to enable role-based access control. This structure prioritizes Authorization Independence by avoiding hierarchical authorization dependencies, using dedicated collections for each role and denormalizing manufacturerId within the FDAApproval collection to facilitate direct queries. This eliminates the need for `get()` calls in security rules, enabling atomic operations and improving debuggability. Structural Segregation is achieved by creating distinct collections for each entity, ensuring a homogeneous security posture within each collection. QAPs are supported through this segregation, allowing secure `list` operations based on user roles."
+  }
+}
