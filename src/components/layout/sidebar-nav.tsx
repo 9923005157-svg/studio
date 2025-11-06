@@ -10,6 +10,7 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar"
 import { Hexagon, LayoutDashboard, BrainCircuit } from "lucide-react"
+import { useRole } from "@/hooks/use-role"
 
 const menuItems = [
   {
@@ -24,8 +25,22 @@ const menuItems = [
   },
 ]
 
+const roleBasePaths: Record<string, string> = {
+    Manufacturer: "/manufacturer",
+    Distributor: "/distributor",
+    Pharmacy: "/pharmacy",
+    FDA: "/fda",
+    Patient: "/patient",
+}
+
 export function SidebarNav() {
   const pathname = usePathname()
+  const { role } = useRole()
+  const dashboardPath = role ? roleBasePaths[role] || "/patient" : "/dashboard";
+
+  const updatedMenuItems = menuItems.map(item => 
+    item.href === "/dashboard" ? { ...item, href: dashboardPath } : item
+  );
 
   return (
     <>
@@ -39,9 +54,9 @@ export function SidebarNav() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
-          {menuItems.map((item) => (
+          {updatedMenuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <Link href={item.href} passHref>
+              <Link href={item.href}>
                 <SidebarMenuButton
                   isActive={pathname === item.href}
                   tooltip={{
