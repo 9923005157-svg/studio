@@ -151,31 +151,41 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "FDAApproval",
       "type": "object",
-      "description": "Represents an FDA approval entity.",
+      "description": "Represents a request for FDA approval for a drug shipment.",
       "properties": {
-        "id": {
+        "drugName": {
           "type": "string",
-          "description": "Unique identifier for the FDA Approval entity."
+          "description": "The name of the drug being submitted for approval."
         },
         "manufacturerId": {
           "type": "string",
-          "description": "Reference to Manufacturer. (Relationship: Manufacturer 1:N FDAApproval)"
+          "description": "The UID of the manufacturer submitting the request."
         },
-        "approvalDate": {
+        "manufacturerName": {
           "type": "string",
-          "description": "Date when the FDA approval was granted.",
+          "description": "The name of the manufacturer."
+        },
+        "submissionDate": {
+          "type": "string",
+          "description": "The ISO 8601 date of the submission.",
           "format": "date-time"
         },
-        "approvalStatus": {
+        "status": {
           "type": "string",
-          "description": "Status of the FDA approval (e.g., Approved, Pending, Rejected)."
+          "description": "The current status of the approval request.",
+          "enum": [
+            "Pending",
+            "Approved",
+            "Rejected"
+          ]
         }
       },
       "required": [
-        "id",
+        "drugName",
         "manufacturerId",
-        "approvalDate",
-        "approvalStatus"
+        "manufacturerName",
+        "submissionDate",
+        "status"
       ]
     }
   },
@@ -274,7 +284,7 @@
           "schema": {
             "$ref": "#/backend/entities/FDAApproval"
           },
-          "description": "Collection for storing FDA approval information.  Denormalizes manufacturerId for efficient querying and authorization. Includes fdaApprovalId as a parameter.",
+          "description": "Collection for storing FDA approval information. Denormalizes manufacturerId for efficient querying and authorization. Includes fdaApprovalId as a parameter.",
           "params": [
             {
               "name": "fdaApprovalId",
@@ -284,6 +294,6 @@
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to support the PharmaTrust application, focusing on securing the pharmaceutical supply chain. It provides separate collections for each role (Manufacturer, Distributor, Pharmacy, Patient, and FDAApproval) to enable role-based access control. A dedicated 'users' collection is added to store user-specific data like roles, which is crucial for authorization. This structure prioritizes Authorization Independence by avoiding hierarchical authorization dependencies, using dedicated collections for each role and denormalizing manufacturerId within the FDAApproval collection to facilitate direct queries. This eliminates the need for `get()` calls in security rules, enabling atomic operations and improving debuggability. Structural Segregation is achieved by creating distinct collections for each entity, ensuring a homogeneous security posture within each collection. QAPs are supported through this segregation, allowing secure `list` operations based on user roles."
+    "reasoning": "The Firestore structure is designed to support the PharmaTrust application, focusing on securing the pharmaceutical supply chain. It provides separate collections for each role (Manufacturer, Distributor, Pharmacy, Patient, and FDA) to enable role-based access control. A dedicated 'users' collection is added to store user-specific data like roles, which is crucial for authorization. The 'fda_approvals' collection allows manufacturers to submit items and FDA to approve them. This structure prioritizes Authorization Independence by avoiding hierarchical authorization dependencies, using dedicated collections for each entity and denormalizing manufacturerId within the FDAApproval collection to facilitate direct queries. This eliminates the need for `get()` calls in security rules, enabling atomic operations and improving debuggability. Structural Segregation is achieved by creating distinct collections for each entity, ensuring a homogeneous security posture within each collection. QAPs are supported through this segregation, allowing secure `list` operations based on user roles."
   }
 }

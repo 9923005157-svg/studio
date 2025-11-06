@@ -30,3 +30,12 @@ export type DrugInfo = {
   expiryDate: string;
   status: string;
 };
+
+export type FdaApprovalItem = {
+  id: string;
+  drugName: string;
+  manufacturerId: string;
+  manufacturerName: string;
+  submissionDate: string;
+  status: 'Pending' | 'Approved' | 'Rejected';
+};

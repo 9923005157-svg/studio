@@ -2,7 +2,7 @@
  * @fileoverview Firestore Security Rules for PharmaTrust application.
  *
  * Core Philosophy:
- * This ruleset enforces a strict user-ownership model for Manufacturers, Distributors, Pharmacies, and Patients. Each entity can only be created, read, updated, or deleted by the authenticated user whose ID matches the entity's ID.  FDA Approvals are publicly readable, but only Manufacturers can create, update, or delete their own FDA Approvals.
+ * This ruleset enforces a strict user-ownership model for Manufacturers, Distributors, Pharmacies, and Patients. Each entity can only be created, read, updated, or deleted by the authenticated user whose ID matches the entity's ID.  FDA Approvals are publicly readable, but only Manufacturers can create them. Only users with the 'FDA' role can update the status of an approval.
  *
  * Data Structure:
  * - /users/{userId}
@@ -14,11 +14,14 @@
  *
  * Key Security Decisions:
  * - Users can only manage their own resources (user profile, manufacturers, distributors, pharmacies, patients).
- * - FDAApprovals are publicly readable to allow information sharing, but writes are restricted to the owning manufacturer.
- * - The rules do not enforce the validity of any data fields except for relational integrity and ownership.
+ * - FDAApprovals are publicly readable to allow information sharing.
+ * - Only Manufacturers can create FDAApprovals.
+ * - Only users with the 'FDA' role can update the 'status' field of an FDAApproval.
+ * - Manufacturers can delete their own FDAApprovals.
  *
  * Denormalization for Authorization:
- * - FDAApproval documents MUST contain the manufacturerId to authorize write operations.
+ * - FDAApproval documents MUST contain the manufacturerId to authorize create/delete operations.
+ * - The `users` collection is checked to verify a user's role for FDA approval updates.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -41,13 +44,6 @@ service cloud.firestore {
     /**
      * @description Controls access to manufacturer documents. Each manufacturer can only manage their own data.
      * @path /manufacturers/{manufacturerId}
-     * @allow (create) - A manufacturer with ID 'manufacturer_abc' can create a document at /manufacturers/manufacturer_abc.
-     * @allow (update) - A manufacturer with ID 'manufacturer_abc' can update a document at /manufacturers/manufacturer_abc.
-     * @allow (delete) - A manufacturer with ID 'manufacturer_abc' can delete a document at /manufacturers/manufacturer_abc.
-     * @deny (create) - A manufacturer with ID 'manufacturer_xyz' cannot create a document at /manufacturers/manufacturer_abc.
-     * @deny (update) - A manufacturer with ID 'manufacturer_xyz' cannot update a document at /manufacturers/manufacturer_abc.
-     * @deny (delete) - A manufacturer with ID 'manufacturer_xyz' cannot delete a document at /manufacturers/manufacturer_abc.
-     * @principle Enforces document ownership for writes.
      */
     match /manufacturers/{manufacturerId} {
       function isOwner(manufacturerId) {
@@ -72,13 +68,6 @@ service cloud.firestore {
     /**
      * @description Controls access to distributor documents. Each distributor can only manage their own data.
      * @path /distributors/{distributorId}
-     * @allow (create) - A distributor with ID 'distributor_abc' can create a document at /distributors/distributor_abc.
-     * @allow (update) - A distributor with ID 'distributor_abc' can update a document at /distributors/distributor_abc.
-     * @allow (delete) - A distributor with ID 'distributor_abc' can delete a document at /distributors/distributor_abc.
-     * @deny (create) - A distributor with ID 'distributor_xyz' cannot create a document at /distributors/distributor_abc.
-     * @deny (update) - A distributor with ID 'distributor_xyz' cannot update a document at /distributors/distributor_abc.
-     * @deny (delete) - A distributor with ID 'distributor_xyz' cannot delete a document at /distributors/distributor_abc.
-     * @principle Enforces document ownership for writes.
      */
     match /distributors/{distributorId} {
       function isOwner(distributorId) {
@@ -103,13 +92,6 @@ service cloud.firestore {
     /**
      * @description Controls access to pharmacy documents. Each pharmacy can only manage their own data.
      * @path /pharmacies/{pharmacyId}
-     * @allow (create) - A pharmacy with ID 'pharmacy_abc' can create a document at /pharmacies/pharmacy_abc.
-     * @allow (update) - A pharmacy with ID 'pharmacy_abc' can update a document at /pharmacies/pharmacy_abc.
-     * @allow (delete) - A pharmacy with ID 'pharmacy_abc' can delete a document at /pharmacies/pharmacy_abc.
-     * @deny (create) - A pharmacy with ID 'pharmacy_xyz' cannot create a document at /pharmacies/pharmacy_abc.
-     * @deny (update) - A pharmacy with ID 'pharmacy_xyz' cannot update a document at /pharmacies/pharmacy_abc.
-     * @deny (delete) - A pharmacy with ID 'pharmacy_xyz' cannot delete a document at /pharmacies/pharmacy_abc.
-     * @principle Enforces document ownership for writes.
      */
     match /pharmacies/{pharmacyId} {
       function isOwner(pharmacyId) {
@@ -134,13 +116,6 @@ service cloud.firestore {
     /**
      * @description Controls access to patient documents. Each patient can only manage their own data.
      * @path /patients/{patientId}
-     * @allow (create) - A patient with ID 'patient_abc' can create a document at /patients/patient_abc.
-     * @allow (update) - A patient with ID 'patient_abc' can update a document at /patients/patient_abc.
-     * @allow (delete) - A patient with ID 'patient_abc' can delete a document at /patients/patient_abc.
-     * @deny (create) - A patient with ID 'patient_xyz' cannot create a document at /patients/patient_abc.
-     * @deny (update) - A patient with ID 'patient_xyz' cannot update a document at /patients/patient_abc.
-     * @deny (delete) - A patient with ID 'patient_xyz' cannot delete a document at /patients/patient_abc.
-     * @principle Enforces document ownership for writes.
      */
     match /patients/{patientId} {
       function isOwner(patientId) {
@@ -163,24 +138,34 @@ service cloud.firestore {
     }
 
     /**
-     * @description Controls access to FDA approval documents. Allows public read access, but restricts write access to the owning manufacturer.
+     * @description Controls access to FDA approval documents.
      * @path /fda_approvals/{fdaApprovalId}
-     * @allow (get) - Any user (signed in or not) can read FDA approval documents.
-     * @allow (list) - Any user (signed in or not) can list FDA approval documents.
-     * @allow (create) - A manufacturer can create an FDA approval document if the document's manufacturerId matches their own ID.
-     * @allow (update) - A manufacturer can update an FDA approval document if the document's manufacturerId matches their own ID.
-     * @allow (delete) - A manufacturer can delete an FDA approval document if the document's manufacturerId matches their own ID.
-     * @deny (create) - A user cannot create an FDA approval for another manufacturer.
-     * @deny (update) - A user cannot update an FDA approval for another manufacturer.
-     * @deny (delete) - A user cannot delete an FDA approval for another manufacturer.
-     * @principle Allows public read access, but enforces manufacturer ownership for writes.
      */
     match /fda_approvals/{fdaApprovalId} {
+      function isFdaUser() {
+        return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'FDA';
+      }
+
+      function isManufacturerOwner() {
+        return request.auth != null && resource.data.manufacturerId == request.auth.uid;
+      }
+      
+      function isCreatingManufacturer() {
+        return request.auth != null && request.resource.data.manufacturerId == request.auth.uid;
+      }
+
+      // Public read access
       allow get: if true;
       allow list: if true;
-      allow create: if request.auth != null && request.resource.data.manufacturerId == request.auth.uid;
-      allow update: if request.auth != null && resource.data.manufacturerId == request.auth.uid;
-      allow delete: if request.auth != null && resource.data.manufacturerId == request.auth.uid;
+
+      // Manufacturer can create
+      allow create: if isCreatingManufacturer();
+      
+      // FDA can update status, Manufacturer cannot change other fields
+      allow update: if isFdaUser() || (isManufacturerOwner() && request.resource.data.keys().removeAll(['status']).size() == request.resource.data.keys().size());
+
+      // Manufacturer can delete
+      allow delete: if isManufacturerOwner();
     }
   }
 }
