@@ -8,8 +8,27 @@ import {
 import { Header } from "@/components/layout/header"
 import { SidebarNav } from "@/components/layout/sidebar-nav"
 import { RoleProvider } from "@/hooks/use-role"
+import { useUser } from "@/firebase"
+import { redirect } from "next/navigation"
+import { useEffect } from "react"
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
+  const { user, isUserLoading } = useUser();
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      redirect('/login');
+    }
+  }, [user, isUserLoading]);
+
+  if (isUserLoading || !user) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+  
   return (
     <RoleProvider>
       <SidebarProvider>
