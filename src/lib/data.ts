@@ -82,19 +82,21 @@ export const alerts: Alert[] = [
   },
 ];
 
-
 export const sampleIotDataForPrediction = JSON.stringify(
   [
-    { "timestamp": "2024-07-24T08:00:00Z", "temperature": 4.5, "humidity": 60, "location": "JFK Airport, NY", "pressure": 1012 },
-    { "timestamp": "2024-07-24T12:00:00Z", "temperature": 9.2, "humidity": 65, "location": "On I-95, CT", "pressure": 1014 },
-    { "timestamp": "2024-07-24T14:00:00Z", "temperature": 5.0, "humidity": 62, "location": "Dist. Center, Boston", "pressure": 1012 }
-  ], null, 2
+    { "timestamp": "2024-07-24T12:00:00Z", "temperature": 4.5, "humidity": 60, "pressure": 1012, "location": "JFK Airport, NY, USA" },
+    { "timestamp": "2024-07-24T12:05:00Z", "temperature": 9.2, "humidity": 65, "pressure": 1014, "location": "JFK Airport, NY, USA" },
+    { "timestamp": "2024-07-24T12:10:00Z", "temperature": 5.1, "humidity": 63, "pressure": 1013, "location": "JFK Airport, NY, USA" }
+  ],
+  null,
+  2
 );
 
 export const sampleBlockchainDataForPrediction = JSON.stringify(
   [
-    { "txId": "0xabc...", "timestamp": "2024-07-24T05:00:00Z", "batchId": "BATCH-XYZ-12345", "from": "PackRight Solutions", "to": "Global Pharma Distributors", "location": "Frankfurt, Germany", "role": "Distributor" },
-    { "txId": "0xdef...", "timestamp": "2024-07-24T08:30:00Z", "batchId": "BATCH-XYZ-12345", "from": "Global Pharma Distributors", "to": "Your Local Pharmacy", "location": "JFK Airport, NY", "role": "Pharmacy" },
-    { "txId": "0xghi...", "timestamp": "2024-07-24T18:00:00Z", "batchId": "BATCH-XYZ-12345", "from": "Unknown Entity", "to": "Your Local Pharmacy", "location": "Bridgeport, CT", "role": "Pharmacy" }
-  ], null, 2
+    { "transactionId": "0xabc123", "timestamp": "2024-07-24T05:00:00Z", "actor": "Global Pharma Distributors", "location": "JFK Airport, NY, USA", "batchId": "BATCH-XYZ-12345", "action": "ShipmentDeparture" },
+    { "transactionId": "0xdef456", "timestamp": "2024-07-24T12:00:00Z", "actor": "Logistics AI Monitor", "location": "JFK Airport, NY, USA", "batchId": "BATCH-XYZ-12345", "action": "AnomalyLog", "details": "Temperature Excursion Detected" }
+  ],
+  null,
+  2
 );
