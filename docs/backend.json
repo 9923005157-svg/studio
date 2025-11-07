@@ -183,6 +183,15 @@
             "Rejected"
           ]
         },
+        "shipmentStatus": {
+          "type": "string",
+          "description": "The current status of the shipment after FDA approval.",
+          "enum": [
+            "Pending Distributor Pickup",
+            "In Transit to Pharmacy",
+            "Delivered to Pharmacy"
+          ]
+        },
         "batchNumber": {
           "type": "string",
           "description": "The batch number for the submitted drug."

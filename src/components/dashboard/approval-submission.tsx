@@ -24,9 +24,10 @@ import { Button } from '@/components/ui/button';
 import { useUser, useFirestore } from '@/firebase';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection } from 'firebase/firestore';
-import { FileUp, Loader2, Thermometer, Droplets, ShieldCheck, Package } from 'lucide-react';
+import { FileUp, Loader2, Thermometer, Droplets, ShieldCheck } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Textarea } from '../ui/textarea';
+import type { FdaApprovalItem } from '@/lib/types';
 
 const submissionSchema = z.object({
   drugName: z.string().min(1, 'Drug name is required.'),
@@ -42,7 +43,6 @@ export function ApprovalSubmission() {
   const firestore = useFirestore();
   const [isLoading, setIsLoading] = useState(false);
   
-  // Mock real-time data
   const [realtimeData, setRealtimeData] = useState({
     temperature: '5.2°C',
     humidity: '61%',
@@ -74,13 +74,14 @@ export function ApprovalSubmission() {
     if (!user || !firestore) return;
     setIsLoading(true);
 
-    const submissionData = {
+    const submissionData: Omit<FdaApprovalItem, 'id'> = {
       ...values,
       ...realtimeData,
       manufacturerId: user.uid,
       manufacturerName: user.displayName || user.email || 'Unknown Manufacturer',
       submissionDate: new Date().toISOString(),
-      status: 'Pending' as const,
+      status: 'Pending',
+      shipmentStatus: 'Pending Distributor Pickup',
     };
 
     const approvalsCollection = collection(firestore, 'fda_approvals');

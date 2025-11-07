@@ -6,7 +6,7 @@ import { TraceabilityTimeline } from '@/components/dashboard/traceability-timeli
 import { IotMonitor } from '@/components/dashboard/iot-monitor';
 import { AlertFeed } from '@/components/dashboard/alert-feed';
 import { drugInfo, supplyChainData, iotData, alerts } from '@/lib/data';
-import { ApprovedDrugs } from '@/components/dashboard/approved-drugs';
+import { PharmacyInventory } from '@/components/dashboard/pharmacy-inventory';
 
 export default function PharmacyPage() {
   return (
@@ -14,7 +14,7 @@ export default function PharmacyPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <PharmacyDashboard />
-          <ApprovedDrugs />
+          <PharmacyInventory />
           <DrugOverviewCard drugInfo={drugInfo} />
           <TraceabilityTimeline events={supplyChainData} />
         </div>

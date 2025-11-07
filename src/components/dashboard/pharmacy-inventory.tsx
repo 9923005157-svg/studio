@@ -26,49 +26,57 @@ import { Badge } from '@/components/ui/badge';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import type { FdaApprovalItem } from '@/lib/types';
-import { FileCheck2 } from 'lucide-react';
+import { Package } from 'lucide-react';
 import { TraceabilityTimeline } from './traceability-timeline';
 import { supplyChainData } from '@/lib/data';
 
-export function ApprovedDrugs() {
+const shipmentStatusColors: { [key: string]: string } = {
+  'In Transit to Pharmacy': 'bg-blue-500 hover:bg-blue-500/80',
+  'Delivered to Pharmacy': 'bg-green-600 hover:bg-green-600/80',
+};
+
+export function PharmacyInventory() {
   const firestore = useFirestore();
 
-  const approvedDrugsQuery = useMemoFirebase(() => {
+  const inventoryQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'fda_approvals'), where('status', '==', 'Approved'));
+    return query(
+      collection(firestore, 'fda_approvals'),
+      where('status', '==', 'Approved'),
+      where('shipmentStatus', 'in', ['In Transit to Pharmacy', 'Delivered to Pharmacy'])
+    );
   }, [firestore]);
 
-  const { data: approvedDrugs, isLoading } = useCollection<FdaApprovalItem>(approvedDrugsQuery);
+  const { data: inventory, isLoading } = useCollection<FdaApprovalItem>(inventoryQuery);
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="font-headline flex items-center gap-2">
-          <FileCheck2 />
-          FDA Approved Drugs
+          <Package />
+          Pharmacy Inventory & In-Transit
         </CardTitle>
         <CardDescription>
-          A list of all drugs and shipments approved by the FDA. Click a drug name for its timeline.
+          A list of drugs currently in your inventory or on their way.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {isLoading && <p>Loading approved drugs...</p>}
-        {!isLoading && (!approvedDrugs || approvedDrugs.length === 0) && (
-          <p className="text-muted-foreground">No approved drugs found.</p>
+        {isLoading && <p>Loading inventory...</p>}
+        {!isLoading && (!inventory || inventory.length === 0) && (
+          <p className="text-muted-foreground">No incoming or current inventory.</p>
         )}
-        {approvedDrugs && approvedDrugs.length > 0 && (
+        {inventory && inventory.length > 0 && (
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Drug Name</TableHead>
                 <TableHead>Batch Number</TableHead>
                 <TableHead>Manufacturer</TableHead>
-                <TableHead>Approval Date</TableHead>
-                <TableHead>Shipment Status</TableHead>
+                <TableHead className="text-right">Shipment Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {approvedDrugs.map((item) => (
+              {inventory.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">
                     <Dialog>
@@ -89,11 +97,10 @@ export function ApprovedDrugs() {
                   </TableCell>
                   <TableCell>{item.batchNumber}</TableCell>
                   <TableCell>{item.manufacturerName}</TableCell>
-                  <TableCell>
-                    {new Date(item.submissionDate).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{item.shipmentStatus}</Badge>
+                  <TableCell className="text-right">
+                    <Badge className={shipmentStatusColors[item.shipmentStatus]}>
+                      {item.shipmentStatus}
+                    </Badge>
                   </TableCell>
                 </TableRow>
               ))}

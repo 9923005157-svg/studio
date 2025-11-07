@@ -17,6 +17,7 @@
  * - FDAApprovals are publicly readable to allow information sharing.
  * - Only Manufacturers can create FDAApprovals.
  * - Only users with the 'FDA' role can update the 'status' field of an FDAApproval.
+ * - Only users with the 'Distributor' role can update the 'shipmentStatus' field.
  * - Manufacturers can delete their own FDAApprovals.
  *
  * Denormalization for Authorization:
@@ -106,6 +107,8 @@ service cloud.firestore {
         return request.auth != null;
       }
 
+
+
       allow get: if isAuthenticated();
       allow list: if isAuthenticated();
       allow create: if isOwner(pharmacyId);
@@ -145,6 +148,10 @@ service cloud.firestore {
       function isFdaUser() {
         return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'FDA';
       }
+      
+      function isDistributorUser() {
+          return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Distributor';
+      }
 
       function isManufacturerOwner() {
         return request.auth != null && resource.data.manufacturerId == request.auth.uid;
@@ -152,6 +159,14 @@ service cloud.firestore {
       
       function isCreatingManufacturer() {
         return request.auth != null && request.resource.data.manufacturerId == request.auth.uid;
+      }
+      
+      function isUpdatingShipmentStatusOnly() {
+          return request.resource.data.keys().hasOnly(['shipmentStatus']);
+      }
+      
+      function isUpdatingFdaStatusOnly() {
+          return request.resource.data.keys().hasOnly(['status']);
       }
 
       // Public read access
@@ -161,8 +176,8 @@ service cloud.firestore {
       // Manufacturer can create
       allow create: if isCreatingManufacturer();
       
-      // FDA can update status, Manufacturer cannot change other fields
-      allow update: if isFdaUser() || (isManufacturerOwner() && request.resource.data.keys().removeAll(['status']).size() == request.resource.data.keys().size());
+      // FDA can update 'status', Distributor can update 'shipmentStatus'
+      allow update: if (isFdaUser() && isUpdatingFdaStatusOnly()) || (isDistributorUser() && isUpdatingShipmentStatusOnly());
 
       // Manufacturer can delete
       allow delete: if isManufacturerOwner();
