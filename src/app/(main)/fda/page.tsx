@@ -7,8 +7,8 @@ import { IotMonitor } from '@/components/dashboard/iot-monitor';
 import { AlertFeed } from '@/components/dashboard/alert-feed';
 import { drugInfo, supplyChainData, iotData, alerts } from '@/lib/data';
 import { ApprovalQueue } from '@/components/dashboard/approval-queue';
-import { ApprovedDrugs } from '@/components/dashboard/approved-drugs';
 import { RejectedDrugs } from '@/components/dashboard/rejected-drugs';
+import { ApprovedDrugs } from '@/components/dashboard/approved-drugs-fda';
 
 export default function FdaPage() {
   return (
