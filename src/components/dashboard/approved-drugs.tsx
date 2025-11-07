@@ -1,11 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import {
   Table,
@@ -23,22 +25,49 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import type { FdaApprovalItem } from '@/lib/types';
-import { FileCheck2 } from 'lucide-react';
+import { FileCheck2, PackagePlus } from 'lucide-react';
 import { TraceabilityTimeline } from './traceability-timeline';
 import { supplyChainData } from '@/lib/data';
 
-export function ApprovedDrugs() {
+// Re-exporting the type with a more specific name for clarity on other pages
+export type ApprovedDrugItem = FdaApprovalItem;
+
+interface ApprovedDrugsProps {
+  onCreateShipment: (selectedDrugs: ApprovedDrugItem[]) => void;
+}
+
+export function ApprovedDrugs({ onCreateShipment }: ApprovedDrugsProps) {
   const firestore = useFirestore();
+  const [selectedDrugs, setSelectedDrugs] = useState<string[]>([]);
 
   const approvedDrugsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'fda_approvals'), where('status', '==', 'Approved'));
+    return query(
+      collection(firestore, 'fda_approvals'),
+      where('status', '==', 'Approved'),
+      where('shipmentStatus', '==', 'Pending Distributor Pickup')
+    );
   }, [firestore]);
 
-  const { data: approvedDrugs, isLoading } = useCollection<FdaApprovalItem>(approvedDrugsQuery);
+  const { data: approvedDrugs, isLoading } = useCollection<ApprovedDrugItem>(approvedDrugsQuery);
+  
+  const handleSelectDrug = (id: string) => {
+    setSelectedDrugs((prev) =>
+      prev.includes(id) ? prev.filter((drugId) => drugId !== id) : [...prev, id]
+    );
+  };
+
+  const handleCreateShipmentClick = () => {
+    if (!approvedDrugs) return;
+    const drugsToShip = approvedDrugs.filter(drug => selectedDrugs.includes(drug.id));
+    onCreateShipment(drugsToShip);
+    setSelectedDrugs([]); // Clear selection after creating shipment
+  };
 
   return (
     <Card>
@@ -48,28 +77,35 @@ export function ApprovedDrugs() {
           FDA Approved Drugs
         </CardTitle>
         <CardDescription>
-          A list of all drugs and shipments approved by the FDA. Click a drug name for its timeline.
+          Select drugs to create a new shipment for dispatch to a pharmacy.
         </CardDescription>
       </CardHeader>
       <CardContent>
         {isLoading && <p>Loading approved drugs...</p>}
         {!isLoading && (!approvedDrugs || approvedDrugs.length === 0) && (
-          <p className="text-muted-foreground">No approved drugs found.</p>
+          <p className="text-muted-foreground">No approved drugs available for shipment.</p>
         )}
         {approvedDrugs && approvedDrugs.length > 0 && (
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[50px]"></TableHead>
                 <TableHead>Drug Name</TableHead>
                 <TableHead>Batch Number</TableHead>
                 <TableHead>Manufacturer</TableHead>
                 <TableHead>Approval Date</TableHead>
-                <TableHead>Shipment Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {approvedDrugs.map((item) => (
                 <TableRow key={item.id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedDrugs.includes(item.id)}
+                      onCheckedChange={() => handleSelectDrug(item.id)}
+                      aria-label={`Select ${item.drugName}`}
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">
                     <Dialog>
                       <DialogTrigger asChild>
@@ -92,15 +128,21 @@ export function ApprovedDrugs() {
                   <TableCell>
                     {new Date(item.submissionDate).toLocaleDateString()}
                   </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{item.shipmentStatus}</Badge>
-                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         )}
       </CardContent>
+       <CardFooter>
+        <Button 
+            disabled={selectedDrugs.length === 0}
+            onClick={handleCreateShipmentClick}
+        >
+          <PackagePlus className="mr-2 h-4 w-4" />
+          Create Shipment ({selectedDrugs.length})
+        </Button>
+      </CardFooter>
     </Card>
   );
 }
