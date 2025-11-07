@@ -86,21 +86,31 @@ export function AuthForm() {
     setIsLoading(true);
     setError(null);
 
-    if (activeTab === 'signin') {
-      const { email, password } = values as SignInValues;
-      initiateEmailSignIn(auth, email, password);
-    } else {
-      const { email, password, role } = values as SignUpValues;
-      try {
-        const userCredential = await initiateEmailSignUp(auth, email, password);
-        if (userCredential && userCredential.user) {
-          const userDocRef = doc(firestore, 'users', userCredential.user.uid);
-          setDocumentNonBlocking(userDocRef, { role: role }, { merge: true });
+    try {
+        if (activeTab === 'signin') {
+          const { email, password } = values as SignInValues;
+          await initiateEmailSignIn(auth, email, password);
+        } else {
+          const { email, password, role } = values as SignUpValues;
+          const userCredential = await initiateEmailSignUp(auth, email, password);
+          if (userCredential && userCredential.user) {
+            const userDocRef = doc(firestore, 'users', userCredential.user.uid);
+            setDocumentNonBlocking(userDocRef, { role: role }, { merge: true });
+          }
         }
-      } catch (err: any) {
-        setError(err.message || 'An unexpected error occurred during sign-up.');
+    } catch (err: any) {
+        let errorMessage = 'An unexpected error occurred.';
+        if (err.code === 'auth/invalid-credential') {
+            errorMessage = 'Invalid email or password. Please try again.';
+        } else if (err.code === 'auth/email-already-in-use') {
+            errorMessage = 'An account with this email already exists.';
+        } else if (err.code === 'auth/weak-password') {
+            errorMessage = 'The password is too weak.';
+        } else if (err.message) {
+            errorMessage = err.message;
+        }
+        setError(errorMessage);
         setIsLoading(false);
-      }
     }
   }
 
