@@ -160,18 +160,6 @@ service cloud.firestore {
       function isCreatingManufacturer() {
         return request.auth != null && request.resource.data.manufacturerId == request.auth.uid;
       }
-      
-      function isUpdatingShipmentStatus() {
-        // Allow update if the 'shipmentStatus' is being changed and the 'status' is not.
-        let incomingData = request.resource.data;
-        return incomingData.shipmentStatus != resource.data.shipmentStatus && incomingData.status == resource.data.status;
-      }
-      
-      function isUpdatingFdaStatus() {
-        // Allow update if the 'status' is being changed and the 'shipmentStatus' is not.
-        let incomingData = request.resource.data;
-        return incomingData.status != resource.data.status && incomingData.shipmentStatus == resource.data.shipmentStatus;
-      }
 
       // Public read access
       allow get: if true;
@@ -180,8 +168,10 @@ service cloud.firestore {
       // Manufacturer can create
       allow create: if isCreatingManufacturer();
       
-      // FDA can update 'status', Distributor can update 'shipmentStatus'
-      allow update: if (isFdaUser() && isUpdatingFdaStatus()) || (isDistributorUser() && isUpdatingShipmentStatus());
+      // Role-based updates for specific fields
+      allow update: if 
+          (isDistributorUser() && request.resource.data.keys().hasOnly(['shipmentStatus'])) ||
+          (isFdaUser() && request.resource.data.keys().hasOnly(['status']));
 
       // Manufacturer can delete
       allow delete: if isManufacturerOwner();
