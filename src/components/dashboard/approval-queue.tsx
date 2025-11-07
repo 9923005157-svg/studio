@@ -22,7 +22,7 @@ import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, doc, query, where } from 'firebase/firestore';
 import type { FdaApprovalItem } from '@/lib/types';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { FileClock, Check, X, Thermometer, Droplets, ShieldCheck, Package, Hash } from 'lucide-react';
+import { FileClock, Check, X, Thermometer, Droplets, ShieldCheck, Package, Hash, CalendarOff } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -94,7 +94,7 @@ export function ApprovalQueue() {
                       <p className="text-muted-foreground">{item.drugDetails}</p>
                     </div>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 border-t pt-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 border-t pt-4">
                         <div className="flex items-center gap-2">
                             <Package className="h-5 w-5 text-primary" />
                             <div>
@@ -107,6 +107,13 @@ export function ApprovalQueue() {
                             <div>
                                 <p className="text-xs text-muted-foreground">Sample Count</p>
                                 <p className="font-semibold">{item.sampleCount}</p>
+                            </div>
+                        </div>
+                         <div className="flex items-center gap-2">
+                            <CalendarOff className="h-5 w-5 text-primary" />
+                            <div>
+                                <p className="text-xs text-muted-foreground">Expiry Date</p>
+                                <p className="font-semibold">{new Date(item.expiryDate).toLocaleDateString()}</p>
                             </div>
                         </div>
                          <div className="flex items-center gap-2">

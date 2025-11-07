@@ -45,4 +45,5 @@ export type FdaApprovalItem = {
   temperature: string;
   humidity: string;
   tamperStatus: string;
+  expiryDate: string;
 };

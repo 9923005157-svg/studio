@@ -24,16 +24,23 @@ import { Button } from '@/components/ui/button';
 import { useUser, useFirestore } from '@/firebase';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection } from 'firebase/firestore';
-import { FileUp, Loader2, Thermometer, Droplets, ShieldCheck } from 'lucide-react';
+import { FileUp, Loader2, Thermometer, Droplets, ShieldCheck, CalendarIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Textarea } from '../ui/textarea';
 import type { FdaApprovalItem } from '@/lib/types';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Calendar } from '../ui/calendar';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 
 const submissionSchema = z.object({
   drugName: z.string().min(1, 'Drug name is required.'),
   drugDetails: z.string().min(1, 'Drug details are required.'),
   batchNumber: z.string().min(1, 'Batch number is required.'),
   sampleCount: z.string().min(1, 'Sample count is required.'),
+  expiryDate: z.date({
+    required_error: "Expiry date is required.",
+  }),
 });
 
 type SubmissionValues = z.infer<typeof submissionSchema>;
@@ -76,6 +83,7 @@ export function ApprovalSubmission() {
 
     const submissionData: Omit<FdaApprovalItem, 'id'> = {
       ...values,
+      expiryDate: values.expiryDate.toISOString(),
       ...realtimeData,
       manufacturerId: user.uid,
       manufacturerName: user.displayName || user.email || 'Unknown Manufacturer',
@@ -162,19 +170,62 @@ export function ApprovalSubmission() {
                 </FormItem>
               )}
             />
-             <FormField
-              control={form.control}
-              name="sampleCount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Number of Samples in Batch</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g., 10000" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="sampleCount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Number of Samples in Batch</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="e.g., 10000" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="expiryDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Expiry Date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) =>
+                            date < new Date() || date < new Date("1900-01-01")
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <Button type="submit" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Submit

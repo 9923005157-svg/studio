@@ -211,6 +211,11 @@
         "tamperStatus": {
           "type": "string",
           "description": "The tamper status of the container at the time of submission."
+        },
+        "expiryDate": {
+          "type": "string",
+          "description": "The expiration date of the drug batch.",
+          "format": "date"
         }
       },
       "required": [
@@ -224,7 +229,8 @@
         "sampleCount",
         "temperature",
         "humidity",
-        "tamperStatus"
+        "tamperStatus",
+        "expiryDate"
       ]
     }
   },
