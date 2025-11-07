@@ -162,7 +162,7 @@ service cloud.firestore {
       }
       
       function isUpdatingShipmentStatus() {
-          return request.resource.data.keys().hasAll(['shipmentStatus']);
+          return request.resource.data.keys().hasAny(['shipmentStatus']);
       }
       
       function isUpdatingFdaStatus() {
