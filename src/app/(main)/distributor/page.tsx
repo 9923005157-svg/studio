@@ -13,8 +13,8 @@ export default function DistributorPage() {
     <div className="p-4 sm:p-6">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
-          <DistributorDashboard />
           <DistributorShipments />
+          <DistributorDashboard />
           <DrugOverviewCard drugInfo={drugInfo} />
           <TraceabilityTimeline events={supplyChainData} />
         </div>
