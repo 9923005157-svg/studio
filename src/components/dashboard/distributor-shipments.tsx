@@ -22,12 +22,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, doc } from 'firebase/firestore';
 import type { FdaApprovalItem } from '@/lib/types';
-import { FileCheck2, Truck } from 'lucide-react';
+import { Truck } from 'lucide-react';
 import { TraceabilityTimeline } from './traceability-timeline';
 import { supplyChainData } from '@/lib/data';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
