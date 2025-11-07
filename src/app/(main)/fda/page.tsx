@@ -8,6 +8,7 @@ import { AlertFeed } from '@/components/dashboard/alert-feed';
 import { drugInfo, supplyChainData, iotData, alerts } from '@/lib/data';
 import { ApprovalQueue } from '@/components/dashboard/approval-queue';
 import { ApprovedDrugs } from '@/components/dashboard/approved-drugs';
+import { RejectedDrugs } from '@/components/dashboard/rejected-drugs';
 
 export default function FdaPage() {
   return (
@@ -17,6 +18,7 @@ export default function FdaPage() {
           <FdaDashboard />
           <ApprovalQueue />
           <ApprovedDrugs />
+          <RejectedDrugs />
           <DrugOverviewCard drugInfo={drugInfo} />
           <TraceabilityTimeline events={supplyChainData} />
         </div>
