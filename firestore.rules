@@ -170,8 +170,8 @@ service cloud.firestore {
       
       // Role-based updates for specific fields
       allow update: if 
-          (isDistributorUser() && request.resource.data.keys().hasOnly(['shipmentStatus'])) ||
-          (isFdaUser() && request.resource.data.keys().hasOnly(['status']));
+          (isDistributorUser() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['shipmentStatus'])) ||
+          (isFdaUser() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']));
 
       // Manufacturer can delete
       allow delete: if isManufacturerOwner();
