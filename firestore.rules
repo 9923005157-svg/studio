@@ -162,11 +162,15 @@ service cloud.firestore {
       }
       
       function isUpdatingShipmentStatus() {
-          return request.resource.data.keys().hasAny(['shipmentStatus']);
+        // Allow update if the 'shipmentStatus' is being changed and the 'status' is not.
+        let incomingData = request.resource.data;
+        return incomingData.shipmentStatus != resource.data.shipmentStatus && incomingData.status == resource.data.status;
       }
       
       function isUpdatingFdaStatus() {
-          return request.resource.data.keys().hasAll(['status']);
+        // Allow update if the 'status' is being changed and the 'shipmentStatus' is not.
+        let incomingData = request.resource.data;
+        return incomingData.status != resource.data.status && incomingData.shipmentStatus == resource.data.shipmentStatus;
       }
 
       // Public read access
