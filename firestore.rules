@@ -161,12 +161,12 @@ service cloud.firestore {
         return request.auth != null && request.resource.data.manufacturerId == request.auth.uid;
       }
       
-      function isUpdatingShipmentStatusOnly() {
-          return request.resource.data.keys().hasOnly(['shipmentStatus']);
+      function isUpdatingShipmentStatus() {
+          return request.resource.data.keys().hasAll(['shipmentStatus']);
       }
       
-      function isUpdatingFdaStatusOnly() {
-          return request.resource.data.keys().hasOnly(['status']);
+      function isUpdatingFdaStatus() {
+          return request.resource.data.keys().hasAll(['status']);
       }
 
       // Public read access
@@ -177,7 +177,7 @@ service cloud.firestore {
       allow create: if isCreatingManufacturer();
       
       // FDA can update 'status', Distributor can update 'shipmentStatus'
-      allow update: if (isFdaUser() && isUpdatingFdaStatusOnly()) || (isDistributorUser() && isUpdatingShipmentStatusOnly());
+      allow update: if (isFdaUser() && isUpdatingFdaStatus()) || (isDistributorUser() && isUpdatingShipmentStatus());
 
       // Manufacturer can delete
       allow delete: if isManufacturerOwner();
