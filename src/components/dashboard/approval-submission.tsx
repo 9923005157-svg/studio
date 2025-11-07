@@ -24,14 +24,15 @@ import { Button } from '@/components/ui/button';
 import { useUser, useFirestore } from '@/firebase';
 import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { collection } from 'firebase/firestore';
-import { FileUp, Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { FileUp, Loader2, Thermometer, Droplets, ShieldCheck, Package } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { Textarea } from '../ui/textarea';
 
 const submissionSchema = z.object({
   drugName: z.string().min(1, 'Drug name is required.'),
   drugDetails: z.string().min(1, 'Drug details are required.'),
-  storageTemperature: z.string().min(1, 'Storage temperature is required.'),
+  batchNumber: z.string().min(1, 'Batch number is required.'),
+  sampleCount: z.string().min(1, 'Sample count is required.'),
 });
 
 type SubmissionValues = z.infer<typeof submissionSchema>;
@@ -40,13 +41,32 @@ export function ApprovalSubmission() {
   const { user } = useUser();
   const firestore = useFirestore();
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Mock real-time data
+  const [realtimeData, setRealtimeData] = useState({
+    temperature: '5.2°C',
+    humidity: '61%',
+    tamperStatus: 'Secure'
+  });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRealtimeData({
+        temperature: `${(4.8 + Math.random() * 0.8).toFixed(1)}°C`,
+        humidity: `${(60 + Math.random() * 5).toFixed(0)}%`,
+        tamperStatus: 'Secure'
+      });
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   const form = useForm<SubmissionValues>({
     resolver: zodResolver(submissionSchema),
     defaultValues: {
       drugName: '',
       drugDetails: '',
-      storageTemperature: '',
+      batchNumber: '',
+      sampleCount: '',
     },
   });
 
@@ -56,6 +76,7 @@ export function ApprovalSubmission() {
 
     const submissionData = {
       ...values,
+      ...realtimeData,
       manufacturerId: user.uid,
       manufacturerName: user.displayName || user.email || 'Unknown Manufacturer',
       submissionDate: new Date().toISOString(),
@@ -65,8 +86,6 @@ export function ApprovalSubmission() {
     const approvalsCollection = collection(firestore, 'fda_approvals');
     addDocumentNonBlocking(approvalsCollection, submissionData);
 
-    // This is a non-blocking call, UI can update immediately.
-    // We'll simulate a delay to show loading state.
     setTimeout(() => {
         setIsLoading(false);
         form.reset();
@@ -81,25 +100,54 @@ export function ApprovalSubmission() {
           Submit for FDA Approval
         </CardTitle>
         <CardDescription>
-          Submit a new drug or shipment for approval by the FDA.
+          Submit a new drug or shipment for approval by the FDA. Real-time data is captured upon submission.
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <div className="mb-6 grid grid-cols-3 gap-4 rounded-lg border bg-muted/50 p-4 text-center">
+            <div className="flex flex-col items-center gap-1">
+                <div className="flex items-center gap-2 text-lg font-bold text-destructive"><Thermometer size={20} />{realtimeData.temperature}</div>
+                <span className="text-xs text-muted-foreground">Temperature</span>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+                <div className="flex items-center gap-2 text-lg font-bold text-blue-600"><Droplets size={20} />{realtimeData.humidity}</div>
+                <span className="text-xs text-muted-foreground">Humidity</span>
+            </div>
+            <div className="flex flex-col items-center gap-1">
+                <div className="flex items-center gap-2 text-lg font-bold text-green-600"><ShieldCheck size={20} />{realtimeData.tamperStatus}</div>
+                <span className="text-xs text-muted-foreground">Tamper Status</span>
+            </div>
+        </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="drugName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Drug/Product Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., CureAll-500mg, Batch #XYZ" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="drugName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Drug/Product Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., CureAll-500mg" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="batchNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Batch Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., BATCH-XYZ-123" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
              <FormField
               control={form.control}
               name="drugDetails"
@@ -115,12 +163,12 @@ export function ApprovalSubmission() {
             />
              <FormField
               control={form.control}
-              name="storageTemperature"
+              name="sampleCount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Storage Temperature</FormLabel>
+                  <FormLabel>Number of Samples in Batch</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., 2-8°C" {...field} />
+                    <Input type="number" placeholder="e.g., 10000" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -136,5 +184,3 @@ export function ApprovalSubmission() {
     </Card>
   );
 }
-
-    

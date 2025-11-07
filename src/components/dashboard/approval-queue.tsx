@@ -22,7 +22,7 @@ import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, doc, query, where } from 'firebase/firestore';
 import type { FdaApprovalItem } from '@/lib/types';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { FileClock, Check, X, Thermometer } from 'lucide-react';
+import { FileClock, Check, X, Thermometer, Droplets, ShieldCheck, Package, Hash } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -93,11 +93,45 @@ export function ApprovalQueue() {
                       <h4 className="font-semibold">Drug Details</h4>
                       <p className="text-muted-foreground">{item.drugDetails}</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Thermometer className="h-5 w-5 text-primary" />
-                        <span className="font-semibold">Storage:</span>
-                        <span>{item.storageTemperature}</span>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 border-t pt-4">
+                        <div className="flex items-center gap-2">
+                            <Package className="h-5 w-5 text-primary" />
+                            <div>
+                                <p className="text-xs text-muted-foreground">Batch No.</p>
+                                <p className="font-semibold">{item.batchNumber}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Hash className="h-5 w-5 text-primary" />
+                            <div>
+                                <p className="text-xs text-muted-foreground">Sample Count</p>
+                                <p className="font-semibold">{item.sampleCount}</p>
+                            </div>
+                        </div>
+                         <div className="flex items-center gap-2">
+                            <Thermometer className="h-5 w-5 text-destructive" />
+                            <div>
+                                <p className="text-xs text-muted-foreground">Temperature</p>
+                                <p className="font-semibold">{item.temperature}</p>
+                            </div>
+                        </div>
+                         <div className="flex items-center gap-2">
+                            <Droplets className="h-5 w-5 text-blue-500" />
+                            <div>
+                                <p className="text-xs text-muted-foreground">Humidity</p>
+                                <p className="font-semibold">{item.humidity}</p>
+                            </div>
+                        </div>
+                         <div className="flex items-center gap-2">
+                            <ShieldCheck className="h-5 w-5 text-green-600" />
+                            <div>
+                                <p className="text-xs text-muted-foreground">Tamper Status</p>
+                                <p className="font-semibold">{item.tamperStatus}</p>
+                            </div>
+                        </div>
                     </div>
+
                     <div className="flex justify-end space-x-2 pt-4">
                        <Button
                         size="sm"
@@ -126,5 +160,3 @@ export function ApprovalQueue() {
     </Card>
   );
 }
-
-    
