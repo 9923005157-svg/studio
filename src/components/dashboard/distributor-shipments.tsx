@@ -26,10 +26,17 @@ import { Button } from '@/components/ui/button';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, doc } from 'firebase/firestore';
 import type { FdaApprovalItem } from '@/lib/types';
-import { Truck } from 'lucide-react';
+import { Truck, CheckCircle } from 'lucide-react';
 import { TraceabilityTimeline } from './traceability-timeline';
 import { supplyChainData } from '@/lib/data';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { Badge } from '../ui/badge';
+
+const shipmentStatusColors: { [key: string]: string } = {
+  'Pending Distributor Pickup': 'bg-yellow-500 hover:bg-yellow-500/80',
+  'In Transit to Pharmacy': 'bg-blue-500 hover:bg-blue-500/80',
+  'Delivered to Pharmacy': 'bg-green-600 hover:bg-green-600/80',
+};
 
 export function DistributorShipments() {
   const firestore = useFirestore();
@@ -38,8 +45,7 @@ export function DistributorShipments() {
     if (!firestore) return null;
     return query(
       collection(firestore, 'fda_approvals'),
-      where('status', '==', 'Approved'),
-      where('shipmentStatus', '==', 'Pending Distributor Pickup')
+      where('status', '==', 'Approved')
     );
   }, [firestore]);
 
@@ -55,25 +61,25 @@ export function DistributorShipments() {
     <Card>
       <CardHeader>
         <CardTitle className="font-headline flex items-center gap-2">
-          <Truck />
-          Shipments for Dispatch
+          <CheckCircle />
+          Approved Shipments
         </CardTitle>
         <CardDescription>
-          A list of FDA-approved drugs ready to be dispatched to pharmacies.
+          A list of all FDA-approved drugs. You can dispatch items that are pending pickup.
         </CardDescription>
       </CardHeader>
       <CardContent>
         {isLoading && <p>Loading shipments...</p>}
         {!isLoading && (!shipments || shipments.length === 0) && (
-          <p className="text-muted-foreground">No shipments ready for dispatch.</p>
+          <p className="text-muted-foreground">No approved shipments found.</p>
         )}
         {shipments && shipments.length > 0 && (
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Drug Name</TableHead>
-                <TableHead>Batch Number</TableHead>
                 <TableHead>Manufacturer</TableHead>
+                <TableHead>Shipment Status</TableHead>
                 <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
@@ -97,13 +103,23 @@ export function DistributorShipments() {
                       </DialogContent>
                     </Dialog>
                   </TableCell>
-                  <TableCell>{item.batchNumber}</TableCell>
                   <TableCell>{item.manufacturerName}</TableCell>
+                  <TableCell>
+                    <Badge className={shipmentStatusColors[item.shipmentStatus]}>
+                        {item.shipmentStatus}
+                    </Badge>
+                  </TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" onClick={() => handleDispatch(item.id)}>
-                      <Truck className="mr-2 h-4 w-4" />
-                      Dispatch to Pharmacy
-                    </Button>
+                    {item.shipmentStatus === 'Pending Distributor Pickup' ? (
+                        <Button size="sm" onClick={() => handleDispatch(item.id)}>
+                          <Truck className="mr-2 h-4 w-4" />
+                          Dispatch to Pharmacy
+                        </Button>
+                    ) : (
+                        <Button size="sm" variant="outline" disabled>
+                           Dispatched
+                        </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
