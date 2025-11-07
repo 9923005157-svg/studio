@@ -188,6 +188,7 @@
           "description": "The current status of the shipment after FDA approval.",
           "enum": [
             "Pending Distributor Pickup",
+            "Dispatching",
             "In Transit to Pharmacy",
             "Delivered to Pharmacy"
           ]

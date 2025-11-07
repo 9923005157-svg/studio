@@ -26,20 +26,23 @@ import { Button } from '@/components/ui/button';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, doc } from 'firebase/firestore';
 import type { FdaApprovalItem } from '@/lib/types';
-import { Truck, CheckCircle } from 'lucide-react';
+import { Truck, CheckCircle, Loader2 } from 'lucide-react';
 import { TraceabilityTimeline } from './traceability-timeline';
 import { supplyChainData } from '@/lib/data';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Badge } from '../ui/badge';
+import { useState } from 'react';
 
 const shipmentStatusColors: { [key: string]: string } = {
   'Pending Distributor Pickup': 'bg-yellow-500 hover:bg-yellow-500/80',
+  'Dispatching': 'bg-orange-500 hover:bg-orange-500/80',
   'In Transit to Pharmacy': 'bg-blue-500 hover:bg-blue-500/80',
   'Delivered to Pharmacy': 'bg-green-600 hover:bg-green-600/80',
 };
 
 export function DistributorShipments() {
   const firestore = useFirestore();
+  const [dispatchingItems, setDispatchingItems] = useState<string[]>([]);
 
   const shipmentsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -53,8 +56,19 @@ export function DistributorShipments() {
 
   const handleDispatch = (id: string) => {
     if (!firestore) return;
+    setDispatchingItems(prev => [...prev, id]);
+
     const docRef = doc(firestore, 'fda_approvals', id);
-    updateDocumentNonBlocking(docRef, { shipmentStatus: 'In Transit to Pharmacy' });
+    
+    // Set status to "Dispatching"
+    updateDocumentNonBlocking(docRef, { shipmentStatus: 'Dispatching' });
+
+    // After a delay, set status to "In Transit to Pharmacy"
+    setTimeout(() => {
+      updateDocumentNonBlocking(docRef, { shipmentStatus: 'In Transit to Pharmacy' });
+      // No need to remove from dispatchingItems, as the component will re-render
+      // and the button will become disabled anyway based on the new shipmentStatus.
+    }, 1500);
   };
 
   return (
@@ -111,9 +125,13 @@ export function DistributorShipments() {
                   </TableCell>
                   <TableCell className="text-right">
                     {item.shipmentStatus === 'Pending Distributor Pickup' ? (
-                        <Button size="sm" onClick={() => handleDispatch(item.id)}>
-                          <Truck className="mr-2 h-4 w-4" />
-                          Dispatch to Pharmacy
+                        <Button size="sm" onClick={() => handleDispatch(item.id)} disabled={dispatchingItems.includes(item.id)}>
+                          {dispatchingItems.includes(item.id) ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <Truck className="mr-2 h-4 w-4" />
+                          )}
+                          {dispatchingItems.includes(item.id) ? 'Dispatching...' : 'Dispatch to Pharmacy'}
                         </Button>
                     ) : (
                         <Button size="sm" variant="outline" disabled>

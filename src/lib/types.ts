@@ -39,7 +39,7 @@ export type FdaApprovalItem = {
   manufacturerName: string;
   submissionDate: string;
   status: 'Pending' | 'Approved' | 'Rejected';
-  shipmentStatus: 'Pending Distributor Pickup' | 'In Transit to Pharmacy' | 'Delivered to Pharmacy';
+  shipmentStatus: 'Pending Distributor Pickup' | 'Dispatching' | 'In Transit to Pharmacy' | 'Delivered to Pharmacy';
   batchNumber: string;
   sampleCount: string;
   temperature: string;

@@ -31,6 +31,7 @@ import { TraceabilityTimeline } from './traceability-timeline';
 import { supplyChainData } from '@/lib/data';
 
 const shipmentStatusColors: { [key: string]: string } = {
+  'Dispatching': 'bg-orange-500 hover:bg-orange-500/80',
   'In Transit to Pharmacy': 'bg-blue-500 hover:bg-blue-500/80',
   'Delivered to Pharmacy': 'bg-green-600 hover:bg-green-600/80',
 };
@@ -43,7 +44,7 @@ export function PharmacyInventory() {
     return query(
       collection(firestore, 'fda_approvals'),
       where('status', '==', 'Approved'),
-      where('shipmentStatus', 'in', ['In Transit to Pharmacy', 'Delivered to Pharmacy'])
+      where('shipmentStatus', 'in', ['Dispatching', 'In Transit to Pharmacy', 'Delivered to Pharmacy'])
     );
   }, [firestore]);
 
